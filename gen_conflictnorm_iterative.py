@@ -8,7 +8,9 @@ from tqdm import tqdm
 from utils import extract_norm, get_prompt, extract_situation
 api_key = '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'    # Fdu
 import os 
-from gen_conflictnorm_iterative_instructions import instruction_4gen_confnorm, instruction_4rec_confnorm, instruction_4rec_situation, instruction_4gen_situation
+from instructions_all import instruction_4gen_confnorm, instruction_4rec_confnorm, instruction_4rec_situation, instruction_4gen_situation
+from judge_4_situation import judge_4_situation
+from judge_4_conflict_norm import judge_4_conflict_norm
 
 input_dir = "../datasets/moral_stories"
 dataset_name = 'test_demo'
@@ -44,15 +46,16 @@ if os.path.exists(output_path_4_messages_history_of_situation_all):
 else:
     messages_history_of_situation_all = []
 
-MAX_ITER = 3
-exsting_data_len = len(new_data)
-for item in tqdm(data[:1]):
+MAX_ITER = 5
+existing_data_len = len(new_data)
+for item in tqdm(data[existing_data_len:]):
     messages_history_of_confnorm = []
     messages_history_of_situation = []
     new_conflict_norm = ''
     new_situation = ''
+    count = 0
     # 对每条数据迭代式生成
-    for i in range(MAX_ITER):
+    while True:
         if i == 0:
             # 首先生成conflict-norm
             instruction = instruction_4gen_confnorm
@@ -117,7 +120,7 @@ for item in tqdm(data[:1]):
     with open(output_path, 'w') as f:
         json.dump(new_data, f, indent=4)
     with open(output_path_4_messages_history_of_confnorm_all, 'w') as f:
-        json.dump(messages_history_of_confnorm_all, f, indent=4)
+        json.dump(messages_history_of_confnorm_all, f, indent=4, ensure_ascii=False)
     with open(output_path_4_messages_history_of_situation_all, 'w') as f:
-        json.dump(messages_history_of_situation_all, f, indent=4)
+        json.dump(messages_history_of_situation_all, f, indent=4, ensure_ascii=False)
 
