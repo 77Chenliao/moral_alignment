@@ -102,7 +102,6 @@ for index, item in enumerate(data[:1]):
             if situation_judgement == 1 and conflict_norm_judgement == 1:
                 break
             iter_count += 1
-
         else:
             # 修改conflict-norm
             instruction = instruction_4rec_confnorm_4oneclient
@@ -141,7 +140,7 @@ for index, item in enumerate(data[:1]):
     # 将judgement_history先变成一个字符串，再加入messages_history
     judgement_history_str = '\n'.join(judgement_history)
     messages_history.append({'role': 'judge', 'content': judgement_history_str})
-    new_data.append({'ID': item['ID'],'norm': item['norm'], 'conflict-norm': new_conflict_norm,'situation': new_situation, 'intention':item['intention'],'moral_action': item['moral_action'],'immoral_action': item['immoral_action']})
+    new_data.append({'ID': item['ID'],'norm': item['norm'], 'conflict-norm': new_conflict_norm,'situation': new_situation, 'intention':item['intention'],'moral_action': item['moral_action'],'immoral_action': item['immoral_action'],'iter_count': iter_count-1,'situ_judgement': situation_judgement,'conflict_norm_judgement': conflict_norm_judgement})
     messages_history_all.append(messages_history)
     # 每生成一个数据，就保存一次
     with open(output_path, 'w') as f:
