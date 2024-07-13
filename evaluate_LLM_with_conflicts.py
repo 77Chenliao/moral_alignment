@@ -2,7 +2,6 @@
     利用生成的数据集对大模型进行测试
 """
 import dashscope
-from dashscope import Generation
 from dashscope.api_entities.dashscope_response import Role
 dashscope.api_key = "sk-7bd6acf8d60c46369a6c89c26c714393"
 import json
@@ -12,7 +11,7 @@ from tqdm import tqdm
 from utils import get_prompt
 import random
 random.seed(2024)
-from cal_pre_recall import cal_f1_conflict
+from backup.cal_pre_recall import cal_f1_conflict
 import os
 
 api_key = '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'    # Fdu

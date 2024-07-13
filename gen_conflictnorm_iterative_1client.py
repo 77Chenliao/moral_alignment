@@ -8,8 +8,7 @@ from tqdm import tqdm
 from utils import extract_norm, get_prompt, extract_situation
 api_key = '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'    # Fdu
 import os
-import  sys
-from datetime import datetime
+import time
 from instructions_all import instruction_4gen_confnorm_4oneclient, instruction_4rec_confnorm_4oneclient, instruction_4rec_situation_4oneclient, instruction_4gen_situation_4oneclient
 
 from judge_4_situation import judge_4_situation
@@ -44,13 +43,13 @@ else:
 
 
 MAX_ITER = 3
-Temperature_4_conflict_norm = 0.01
-Temperature_4_situation = 1.2
+Temperature_4_conflict_norm = 0.1
+Temperature_4_situation = 2
 
 
 existing_data_len = len(new_data)
 # for item in tqdm(data[existing_data_len:]):
-for index, item in enumerate(data[:1]):
+for index, item in enumerate(data[existing_data_len:]):
     messages_history = []
     judgement_history = []
     new_conflict_norm = ''
@@ -64,6 +63,7 @@ for index, item in enumerate(data[:1]):
         print(f"  第{iter_count }次迭代")
         if  iter_count == 1:
             # 首先生成conflict-norm
+            start_time = time.time()
             instruction = instruction_4gen_confnorm_4oneclient
             prompt = get_prompt(instruction, item)
             messages_history.append({'role': Role.USER, 'content': f'{prompt}'})
@@ -73,7 +73,8 @@ for index, item in enumerate(data[:1]):
                     temperature=Temperature_4_conflict_norm
             )
             Answer = completion.choices[0].message.content
-            print(f"    conflict-norm完成")
+            end_time = time.time()
+            print(f"    conflict-norm完成. {end_time-start_time:.2f}s")
             # 将生成的conflict-norm加入历史
             messages_history.append({'role': Role.SYSTEM, 'content': Answer})
             new_conflict_norm = extract_norm(Answer)
@@ -81,6 +82,7 @@ for index, item in enumerate(data[:1]):
             conflict_norm_judgement = judge_4_conflict_norm(new_conflict_norm)
             print(f"    conflict-norm_judgement:{conflict_norm_judgement}")
             # 然后扩充situation
+            start_time = time.time()
             instruction = instruction_4gen_situation_4oneclient
             original_length = len(f"{item['situation']} {item['intention']}".split())
             prompt = get_prompt(instruction, item)
@@ -91,8 +93,9 @@ for index, item in enumerate(data[:1]):
                     messages=messages_history,
                     temperature=Temperature_4_situation
             )
-            print(f"    situation完成")
+            end_time = time.time()
             Answer = completion.choices[0].message.content
+            print(f"    situation完成. {end_time-start_time:.2f}s")
             # 将生成的situation加入历史
             messages_history.append({'role': Role.SYSTEM, 'content': Answer})
             new_situation = extract_situation(Answer)
@@ -104,6 +107,7 @@ for index, item in enumerate(data[:1]):
             iter_count += 1
         else:
             # 修改conflict-norm
+            start_time = time.time()
             instruction = instruction_4rec_confnorm_4oneclient
             prompt = get_prompt(instruction, {'situation': new_situation})
             messages_history.append({'role': Role.USER, 'content': f'{prompt}'})
@@ -112,13 +116,15 @@ for index, item in enumerate(data[:1]):
                     messages=messages_history,
                     temperature=Temperature_4_conflict_norm
             )
-            print(f"    conflict-norm完成")
             Answer = completion.choices[0].message.content
+            end_time = time.time()
+            print(f"    conflict-norm完成. {end_time-start_time:.2f}s")
             messages_history.append({'role': Role.SYSTEM, 'content': Answer})
             new_conflict_norm = extract_norm(Answer)
             conflict_norm_judgement = judge_4_conflict_norm(new_conflict_norm)
             print(f"    conflict-norm_judgement:{conflict_norm_judgement}")
             # 修改situation
+            start_time = time.time()
             instruction = instruction_4rec_situation_4oneclient
             prompt = get_prompt(instruction, {'conflict-norm': new_conflict_norm})
             messages_history.append({'role': Role.USER, 'content': f'{prompt}'})
@@ -127,8 +133,9 @@ for index, item in enumerate(data[:1]):
                     messages=messages_history,
                     temperature=Temperature_4_situation
             )
-            print(f"    situation完成")
             Answer = completion.choices[0].message.content
+            end_time = time.time()
+            print(f"    situation完成. {end_time-start_time:.2f}s")
             messages_history.append({'role': Role.SYSTEM, 'content': Answer})
             new_situation = extract_situation(Answer)
             response_list, situation_judgement = judge_4_situation({'situation': new_situation,'moral_action': item['moral_action'],'immoral_action': item['immoral_action']})
@@ -143,8 +150,8 @@ for index, item in enumerate(data[:1]):
     new_data.append({'ID': item['ID'],'norm': item['norm'], 'conflict-norm': new_conflict_norm,'situation': new_situation, 'intention':item['intention'],'moral_action': item['moral_action'],'immoral_action': item['immoral_action'],'iter_count': iter_count-1,'situ_judgement': situation_judgement,'conflict_norm_judgement': conflict_norm_judgement})
     messages_history_all.append(messages_history)
     # 每生成一个数据，就保存一次
-    with open(output_path, 'w') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(new_data, f, indent=4, ensure_ascii=False)
-    with open(output_path_4_messages_history, 'w') as f:
+    with open(output_path_4_messages_history, 'w', encoding='utf-8') as f:
         json.dump(messages_history_all, f, indent=4, ensure_ascii=False)
 
