@@ -1,13 +1,11 @@
 import dashscope
 from dashscope.api_entities.dashscope_response import Role
-dashscope.api_key = "sk-7bd6acf8d60c46369a6c89c26c714393"
+from utils import ali_api_key,openai_api_key,extract_norm, get_prompt, extract_situation
+dashscope.api_key = ali_api_key
+api_key = openai_api_key   # Fdu
 import json
 from openai import OpenAI
-from tqdm import tqdm
-from utils import extract_norm, get_prompt, extract_situation
-api_key = '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'    # Fdu
 import os
-import time
 from instructions_all import instruction_4gen_confnorm, instruction_4rec_confnorm, instruction_4gen_situation, instruction_4rec_situation 
 from judge_4_situation import judge_4_situation
 from judge_4_conflict_norm import judge_4_conflict_norm

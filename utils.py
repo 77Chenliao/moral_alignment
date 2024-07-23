@@ -1,4 +1,7 @@
 import re
+
+
+
 def extract_norm(answer):
     if 'conflict-norm is:' in answer:
         result = answer.split('conflict-norm is:')[1].strip()
@@ -39,21 +42,6 @@ def get_prompt(instruction, item):
 
 
 
-def extract_ab(answer):
-    # 兼容之前的
-    if answer =='A':
-        return 'A'
-    if answer == 'B':
-        return 'B'
-    # 利用re统计'(A)'的次数
-    A_count = len(re.findall(r'\(A\)', answer))
-    B_count = len(re.findall(r'\(B\)', answer))
-    if A_count == 0 and B_count == 0:
-        return None
-    if A_count > B_count:
-        return 'A'
-    else:
-        return 'B'
 
 def extract_AB(answer):
     # 基本涵盖所有形式的输出
@@ -67,24 +55,6 @@ def extract_AB(answer):
         return 'B'
     else:
         return None
-    
-def extract_yesno_label(answer):
-    # 全部小写，去除首尾空格
-    answer = answer.lower().strip()
-    if 'yes' in answer:
-        return 1
-    elif 'no' in answer:
-        return 0
-    else:
-        return -1
-    
-def extract_moral_immoral_label(answer):
-    # 全部小写，去除首尾空格
-    answer = answer.lower().strip()
-    if 'immoral' in answer:
-        return 'immoral'
-    else:
-        return 'moral'
     
 
 # main文件才运行
