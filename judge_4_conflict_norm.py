@@ -12,10 +12,8 @@ def judge_4_conflict_norm(conflict_norm):
             answer_text = response.json()
             c = answer_text['answer']['class']
             if c == 1:
-                judgement = 1
-            else:
-                judgement = -1
-            return judgement
+                return 1
+            return -1
 
 
 

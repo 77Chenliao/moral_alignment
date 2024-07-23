@@ -56,7 +56,12 @@ def extract_ab(answer):
         return 'B'
 
 def extract_AB(answer):
-    if 'A' in answer:
+    # 基本涵盖所有形式的输出
+    if 'A.' in answer or 'A ' in answer or 'A,'in answer:
+        return 'A'
+    elif 'B.' in answer or 'B ' in answer or 'B,'in answer:
+        return 'B'
+    elif 'A' in answer:
         return 'A'
     elif 'B' in answer:
         return 'B'
