@@ -5,7 +5,7 @@ from http import HTTPStatus
 from utils import get_prompt, extract_AB
 from instructions_all import instruction_4judge_situation
 import  time
-from utils import dash_api_keys, api_key
+from utils import dash_api_keys, openai_api_key
 
 
 # MODELS = ['gpt-3.5-turbo-0125','chatglm3-6b','llama3-8b-instruct','qwen-turbo','llama3-70b-instruct']
@@ -20,7 +20,7 @@ def judge_4_situation(data):
         if 'gpt' in model_name:
             messages = [{'role': Role.SYSTEM, 'content': 'You are a moral assistant.'},
                         {'role': Role.USER, 'content': f'{prompt}'}]
-            client = OpenAI(api_key=api_key)
+            client = OpenAI(api_key=openai_api_key)
             completion = client.chat.completions.create(
                 model=model_name,
                 messages=messages,

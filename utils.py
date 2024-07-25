@@ -3,7 +3,6 @@ import re
 
 ali_api_key = "xx"
 openai_api_key = 'xx'
-api_key = 'xx'    # Fdu
 dash_api_keys = ["xx", "xx","xx"]
 
 def extract_norm(answer):
