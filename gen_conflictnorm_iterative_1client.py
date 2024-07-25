@@ -11,8 +11,8 @@ from judge_4_situation import judge_4_situation
 from judge_4_conflict_norm import judge_4_conflict_norm
 
 input_dir = "../datasets/moral_stories"
-dataset_name = 'moral_stories_full_with_category'
-data_path = f"{input_dir}/{dataset_name}.json"
+dataset_name = 'moral_stories_full_with_category_split1'
+data_path = f"{input_dir}/{datcdaset_name}.json"
 with open(data_path, 'r') as f:
     data = json.load(f)
 

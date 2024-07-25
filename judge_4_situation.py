@@ -5,8 +5,7 @@ from http import HTTPStatus
 from utils import get_prompt, extract_AB
 from instructions_all import instruction_4judge_situation
 import  time
-api_key = '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'    # Fdu
-dash_api_keys = ["sk-7bd6acf8d60c46369a6c89c26c714393", "sk-d39d1ad519c1410eb4054fe1f3347a75","sk-afd80e94614a4d0aaf0aed36fc466005"]
+from utils import dash_api_keys, api_key
 
 
 # MODELS = ['gpt-3.5-turbo-0125','chatglm3-6b','llama3-8b-instruct','qwen-turbo','llama3-70b-instruct']

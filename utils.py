@@ -1,8 +1,11 @@
 import re
 
 
-ali_api_key = "XXX"
-openai_api_key = 'XXX'
+ali_api_key = "xx"
+openai_api_key = 'xx'
+api_key = 'xx'    # Fdu
+dash_api_keys = ["xx", "xx","xx"]
+
 def extract_norm(answer):
     if 'conflict-norm is:' in answer:
         result = answer.split('conflict-norm is:')[1].strip()
