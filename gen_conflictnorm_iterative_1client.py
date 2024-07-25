@@ -139,7 +139,7 @@ for index, item in enumerate(data[existing_data_len:]):
         level = 'easy'
     elif min_diff == 3:
         level = 'medium'
-    elif min_diff == 1:
+    else:
         level = 'hard'
     new_data.append({'ID': item['ID'],'norm': item['norm'], 'conflict-norm': best_conflict_norm,'situation': best_situation,'moral_action': item['moral_action'],'immoral_action': item['immoral_action'],'rot_category':item['rot_category'],'level':level,'conflict_norm_judgement':best_conflict_norm_judgement})
     messages_history_all.append(messages_history)

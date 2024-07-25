@@ -1,7 +1,8 @@
 import re
 
 
-
+ali_api_key = "XXX"
+openai_api_key = 'XXX'
 def extract_norm(answer):
     if 'conflict-norm is:' in answer:
         result = answer.split('conflict-norm is:')[1].strip()
