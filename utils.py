@@ -57,7 +57,7 @@ def extract_AB(answer):
     elif 'B' in answer:
         return 'B'
     else:
-        return None
+        return 'B'
     
 
 # main文件才运行
