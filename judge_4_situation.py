@@ -55,7 +55,6 @@ def judge_4_situation(data):
                 print(f"      {model_name} failed. {completion}")
                 # 抛出异常
                 raise Exception(f"      {model_name} failed. {completion.status_code}")
-            count_B = answer_list.count('B')
 
     count_A = answer_list.count('A')
     count_B = answer_list.count('B')
