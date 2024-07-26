@@ -4,7 +4,6 @@ import re
 ali_api_key = "xx"
 openai_api_key = 'xx'
 dash_api_keys = ["xx", "xx","xx"]
-
 def extract_norm(answer):
     if 'conflict-norm is:' in answer:
         result = answer.split('conflict-norm is:')[1].strip()
@@ -57,7 +56,7 @@ def extract_AB(answer):
     elif 'B' in answer:
         return 'B'
     else:
-        return None
+        return 'B'
     
 
 # main文件才运行
