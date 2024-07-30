@@ -90,6 +90,13 @@ for index, item in enumerate(data[existing_data_len:]):
             response_list, diff = judge_4_situation({'situation': new_situation,'norm': item['norm'],'conflict-norm':new_conflict_norm,'moral_action': item['moral_action'],'immoral_action': item['immoral_action']})
             judgement_history.append(f"{iter_count}th iteration,conflict-norm_judgement:{conflict_norm_judgement},response_list:{response_list}")
             print(f"    differ :{diff}")
+            if diff == 1: # early stop
+                min_diff = diff
+                best_situation = new_situation
+                best_conflict_norm = new_conflict_norm
+                best_conflict_norm_judgement = conflict_norm_judgement
+                print(f"    early stop")
+                break
             if diff < min_diff:
                 min_diff = diff
                 best_situation = new_situation
@@ -127,6 +134,14 @@ for index, item in enumerate(data[existing_data_len:]):
             response_list, diff = judge_4_situation({'situation': new_situation,'norm': item['norm'],'conflict-norm':new_conflict_norm,'moral_action': item['moral_action'],'immoral_action': item['immoral_action']})
             judgement_history.append(f"{iter_count}th iteration,conflict-norm_judgement:{conflict_norm_judgement},response_list:{response_list}")
             print(f"    differ :{diff}")
+            if diff == 1: # early stop
+                min_diff = diff
+                best_situation = new_situation
+                best_conflict_norm = new_conflict_norm
+                best_conflict_norm_judgement = conflict_norm_judgement
+                if iter_count != 3:
+                    print(f"    early stop")
+                break
             if diff < min_diff:
                 min_diff = diff
                 best_situation = new_situation
