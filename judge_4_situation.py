@@ -8,8 +8,8 @@ import  time
 from utils import dash_api_keys, openai_api_key
 
 
-# MODELS = ['gpt-3.5-turbo-0125','chatglm3-6b','llama3-8b-instruct','qwen-turbo','llama3-70b-instruct']
-MODELS = ['gpt-3.5-turbo-0125','chatglm3-6b','llama2-13b-chat-v2','qwen-turbo','llama3-70b-instruct']
+MODELS = ['gpt-3.5-turbo-0125','chatglm3-6b','llama3-8b-instruct','qwen-turbo','llama3-70b-instruct']
+# MODELS = ['gpt-3.5-turbo-0125','chatglm3-6b','llama2-13b-chat-v2','qwen-turbo','llama3-70b-instruct']
 Temperature = 1e-5
 
 def judge_4_situation(data):
