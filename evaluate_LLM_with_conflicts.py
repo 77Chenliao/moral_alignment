@@ -13,9 +13,9 @@ import os
 from utils import get_prompt, ali_api_key, openai_api_key, cal_metrics_4_evaluation
 from instructions_all import instruction_4evaluation_0norm, instruction_4evaluation_norm, instruction_4evaluation_conflict_norm, instruction_4evaluation_2norms
 
-model_name = 'llama3-8b-instruct'
-task_setting = '2norms' # 0norm, norm, conflict-norm,2norms
-dataset = 'original_moral_stories' # original_moral_stories, moral_conflicts
+model_name = 'llama3-70b-instruct' # llama3-70b-instruct, llama3-8b-instruct, gpt-3.5-turbo, gpt-4o
+task_setting = 'conflict-norm' # 0norm, norm, conflict-norm,2norms
+dataset = 'moral_conflicts' # original_moral_stories, moral_conflicts
 
 if task_setting == '0norm':
     instruction = instruction_4evaluation_0norm
@@ -52,13 +52,14 @@ for item in tqdm(testing_data[exist_num:]):
         item['Truth'] = 'A'
     elif choice == 1 and task_setting!='2norms': # B为正确选项
         item['Truth'] = 'B'
-        instruction_ = instruction.replace("A. {Moral_action}\nB. {Immoral_action}","A. {Immoral_action}\nB. {Moral_action}")
+        instruction_ = instruction.replace("A.{Moral_action}\nB.{Immoral_action}","A.{Immoral_action}\nB.{Moral_action}")
     else: # 2norms实验，既交换选项A和B，又交换norm与conflict-norm的位置
         item['Truth'] = 'B'
-        instruction_ = instruction.replace("Moral Norm 1: {Norm}\nMoral Norm 2: {Conflict-norm}", "Moral Norm 1: {Conflict-norm}\nMoral Norm 2: {Norm}")
-        instruction_ = instruction_.replace("A. {Moral_action}\nB. {Immoral_action}","A. {Immoral_action}\nB. {Moral_action}")
+        instruction_ = instruction.replace("Moral Norm 1:{Norm}\nMoral Norm 2:{Conflict-norm}", "Moral Norm 1:{Conflict-norm}\nMoral Norm 2:{Norm}")
+        instruction_ = instruction.replace("A.{Moral_action}\nB.{Immoral_action}","A.{Immoral_action}\nB.{Moral_action}")
 
     prompt = get_prompt(instruction_, item)
+    item['evaluation_prompt'] = prompt
     if 'gpt' in model_name:
         messages = [{'role': Role.SYSTEM, 'content': "You're a moral AI assistant."},
                     {'role': Role.USER, 'content': f'{prompt}'}]
