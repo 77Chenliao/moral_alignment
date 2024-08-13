@@ -47,12 +47,11 @@ for index, item in enumerate(data[existing_data_len:]):
     judgement_history = []
     new_conflict_norm = ''
     new_situation = ''
-    min_diff = 10
-    best_situation = ''
-    best_conflict_norm = ''
-    best_conflict_norm_judgement = -1 
+
+    original_judge = judge_4_situation(item)
 
     print(f"第{existing_data_len+index+1}/{len(data)}条数据开始生成")
+    print(f"  原始situation判断:{original_judge}")
     for iter_count in range(1, MAX_ITER+1):
         print(f"  第{iter_count }次迭代")
         if  iter_count == 1:
@@ -74,7 +73,7 @@ for index, item in enumerate(data[existing_data_len:]):
             print(f"    conflict-norm_judgement:{conflict_norm_judgement}")
             # 然后扩充situation
             instruction = instruction_4gen_situation
-            original_length = len(f"{item['situation']} {item['intention']}".split())
+            original_length = len(f"{item['situation']}".split())
             prompt = get_prompt(instruction, item)
             prompt = prompt.replace('{length_limit}', f"{max(100,2*original_length)}")
             messages_history.append({'role': Role.USER, 'content': f'{prompt}'})
@@ -87,21 +86,14 @@ for index, item in enumerate(data[existing_data_len:]):
             print(f"    situation完成.")
             messages_history.append({'role': Role.SYSTEM, 'content': Answer})
             new_situation = extract_situation(Answer)
-            response_list, diff = judge_4_situation({'situation': new_situation,'norm': item['norm'],'conflict-norm':new_conflict_norm,'moral_action': item['moral_action'],'immoral_action': item['immoral_action']})
-            judgement_history.append(f"{iter_count}th iteration,conflict-norm_judgement:{conflict_norm_judgement},response_list:{response_list}")
-            print(f"    differ :{diff}")
-            if diff == 1: # early stop
-                min_diff = diff
-                best_situation = new_situation
-                best_conflict_norm = new_conflict_norm
-                best_conflict_norm_judgement = conflict_norm_judgement
-                print(f"    early stop")
+            new_judge = judge_4_situation({'situation': new_situation,'moral_action': item['moral_action'],'immoral_action': item['immoral_action']})
+            judgement_history.append(f"{iter_count}th iteration, conflict-norm_judgement:{conflict_norm_judgement},situation_judgement:{new_judge}")
+            print(f"    新situation判断:{new_judge}")
+
+            if new_judge == 'B' and conflict_norm_judgement == 1:
+                print(f"    stop")
                 break
-            if diff < min_diff:
-                min_diff = diff
-                best_situation = new_situation
-                best_conflict_norm = new_conflict_norm
-                best_conflict_norm_judgement = conflict_norm_judgement
+
         else:
             # 修改conflict-norm
             instruction = instruction_4rec_confnorm
@@ -131,32 +123,25 @@ for index, item in enumerate(data[existing_data_len:]):
             print(f"    situation完成.")
             messages_history.append({'role': Role.SYSTEM, 'content': Answer})
             new_situation = extract_situation(Answer)
-            response_list, diff = judge_4_situation({'situation': new_situation,'norm': item['norm'],'conflict-norm':new_conflict_norm,'moral_action': item['moral_action'],'immoral_action': item['immoral_action']})
-            judgement_history.append(f"{iter_count}th iteration,conflict-norm_judgement:{conflict_norm_judgement},response_list:{response_list}")
-            print(f"    differ :{diff}")
-            if diff == 1: # early stop
-                min_diff = diff
-                best_situation = new_situation
-                best_conflict_norm = new_conflict_norm
-                best_conflict_norm_judgement = conflict_norm_judgement
-                if iter_count != 3:
-                    print(f"    early stop")
+            new_judge = judge_4_situation({'situation': new_situation,'moral_action': item['moral_action'],'immoral_action': item['immoral_action']})
+            judgement_history.append(f"{iter_count}th iteration,conflict-norm_judgement:{conflict_norm_judgement},situation_judgement:{new_judge}")
+            print(f"    新situation判断:{new_judge}")
+            if new_judge == 'B' and conflict_norm_judgement == 1:
+                print(f"    stop")
                 break
-            if diff < min_diff:
-                min_diff = diff
-                best_situation = new_situation
-                best_conflict_norm = new_conflict_norm
-                best_conflict_norm_judgement = conflict_norm_judgement
+
+
+
     # 将judgement_history先变成一个字符串，再加入messages_history
     judgement_history_str = '\n'.join(judgement_history)
     messages_history.append({'role': 'judge', 'content': judgement_history_str})
-    if min_diff == 5:
-        level = 'easy'
-    elif min_diff == 3:
-        level = 'medium'
-    else:
+
+    if new_judge=='B':
         level = 'hard'
-    new_data.append({'ID': item['ID'],'norm': item['norm'], 'conflict-norm': best_conflict_norm,'situation': best_situation,'moral_action': item['moral_action'],'immoral_action': item['immoral_action'],'rot_category':item['rot_category'],'level':level,'conflict_norm_judgement':best_conflict_norm_judgement})
+    else:
+        level = 'easy'
+
+    new_data.append({'ID': item['ID'],'norm': item['norm'], 'conflict-norm': new_conflict_norm,'situation': new_situation,'moral_action': item['moral_action'],'immoral_action': item['immoral_action'],'rot_category':item['rot_category'],'level':level,'conflict_norm_judgement':conflict_norm_judgement})
     messages_history_all.append(messages_history)
     # 即时保存
     with open(output_path, 'w') as f:
