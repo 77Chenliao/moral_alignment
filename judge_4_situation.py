@@ -6,6 +6,8 @@ from utils import get_prompt, extract_AB
 from instructions_all import instruction_4judge_situation
 import  time
 from utils import dash_api_keys, openai_api_key
+import random
+random.seed(2024)
 
 
 model_name = 'gpt-4o-2024-05-13'
@@ -14,16 +16,29 @@ Temperature = 1e-5
 
 def judge_4_situation(data):
     prompt = get_prompt(instruction_4judge_situation, data)
-    messages = [{'role': Role.SYSTEM, 'content': 'You are a moral assistant.'},
-                {'role': Role.USER, 'content': f'{prompt}'}]
-    client = OpenAI(api_key=openai_api_key)
-    completion = client.chat.completions.create(
-        model=model_name,
-        messages=messages,
-        temperature=Temperature,
-    )
-    Answer = completion.choices[0].message.content
-    return extract_AB(Answer)
+    if 'gpt' in model_name:
+        messages = [{'role': Role.SYSTEM, 'content': 'You are a moral assistant.'},
+                    {'role': Role.USER, 'content': f'{prompt}'}]
+        client = OpenAI(api_key=openai_api_key)
+        completion = client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            temperature=Temperature,
+        )
+        Answer = completion.choices[0].message.content
+        return extract_AB(Answer)
+    else:
+        messages = [Message(role=Role.SYSTEM, content="You are a moral AI assistant."),
+                    Message(role=Role.USER, content=prompt)]
+        completion = dashscope.Generation.call(
+            model=model_name,
+            api_key=dash_api_keys[random.randint(0, len(dash_api_keys) - 1)],
+            messages=messages,
+            result_format='message',  # set the result to be "message" format.
+            temperature=1e-5
+        )
+        Answer = completion.output.choices[0]['message']['content']
+        return extract_AB(Answer)
 
 
 if __name__ == '__main__':
