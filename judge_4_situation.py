@@ -2,7 +2,7 @@ import dashscope
 from dashscope.api_entities.dashscope_response import Role, Message
 from openai import OpenAI
 from http import HTTPStatus
-from utils import get_prompt, extract_AB
+from utils import get_prompt, extract_satisfied
 from instructions_all import instruction_4judge_situation
 import  time
 from utils import dash_api_keys, openai_api_key
@@ -10,14 +10,15 @@ import random
 random.seed(2024)
 
 
-model_name = 'gpt-4o-2024-05-13'
+model_name = 'gpt-4o-2024-08-06'
 Temperature = 1e-5
 
+task_description = "You're a strict data filtering assistant, and next you're going to help me determine if some data meets the conditions I've given you."
 
 def judge_4_situation(data):
     prompt = get_prompt(instruction_4judge_situation, data)
     if 'gpt' in model_name:
-        messages = [{'role': Role.SYSTEM, 'content': 'You are a moral assistant.'},
+        messages = [{'role': Role.SYSTEM, 'content': task_description},
                     {'role': Role.USER, 'content': f'{prompt}'}]
         client = OpenAI(api_key=openai_api_key)
         completion = client.chat.completions.create(
@@ -26,7 +27,6 @@ def judge_4_situation(data):
             temperature=Temperature,
         )
         Answer = completion.choices[0].message.content
-        return extract_AB(Answer)
     else:
         messages = [Message(role=Role.SYSTEM, content="You are a moral AI assistant."),
                     Message(role=Role.USER, content=prompt)]
@@ -38,7 +38,8 @@ def judge_4_situation(data):
             temperature=1e-5
         )
         Answer = completion.output.choices[0]['message']['content']
-        return extract_AB(Answer)
+    judge = extract_satisfied(Answer)
+    return judge,Answer
 
 
 if __name__ == '__main__':

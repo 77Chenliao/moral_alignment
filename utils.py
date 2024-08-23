@@ -6,14 +6,12 @@ def extract_norm(answer):
     if 'conflict-norm is:' in answer:
         result = answer.split('conflict-norm is:')[1].strip()
         result = result.split('.')[0].strip()
-        result = result.replace('*', '')
         return result
     return answer
 
 def extract_situation(answer):
-    if 'Situation:' in answer:
-        result = answer.split('Situation:')[1].strip()
-        result = result.split('Norm:')[0].strip()
+    if 'New situation:' in answer:
+        result = answer.split('New situation:')[1].strip()
         return result
     return answer
         
@@ -38,6 +36,8 @@ def get_prompt(instruction, item):
         prompt = prompt.replace('{Immoral_consequence}', item['immoral_consequence'])
     if "{Conflict-norm}" in instruction:
         prompt = prompt.replace('{Conflict-norm}', item['conflict-norm'])
+    if "{New_situation}" in instruction:
+        prompt = prompt.replace('{New_situation}', item['new_situation'])
     return prompt
 
 
@@ -56,6 +56,13 @@ def extract_AB(answer):
         return 'B'
     else:
         return 'B'
+
+def extract_satisfied(answer):
+    if "Satisfied" in answer and "Unsatisfied" not in answer:
+        return 1
+    else:
+        return 0
+
 
 def extract_AB_4_evaluation_llm(answer):
     if 'cannot' in answer and 'A.' not in answer and 'B.' not in answer:
