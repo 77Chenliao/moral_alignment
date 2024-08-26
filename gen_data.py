@@ -48,10 +48,12 @@ Temperature_4_situation = 1.2
 
 existing_data_len = len(new_data)
 for index, item in enumerate(data[existing_data_len:]):
-    messages_history = []
-    judgement_history = []
+    messages_history = [] # 对话历史
     new_conflict_norm = ''
     new_situation = ''
+    item['new_situation'] = 'not generated'
+    item['conflict_norm'] = ''
+    situation_judgement = -1
     conflict_norm_iteration_nums = 0
     qualified_conflict_norm_nums = 0
     situation_iteration_nums = 0
@@ -83,10 +85,12 @@ for index, item in enumerate(data[existing_data_len:]):
             Answer = completion.choices[0].message.content
             messages_history.append({'role': Role.ASSISTANT, 'content': Answer})
             new_conflict_norm = extract_norm(Answer)
-            conflict_norm_judgement = judge_4_conflict_norm(new_conflict_norm)
-            if conflict_norm_judgement !=1: # 如果conflict-norm不合格，重来
+            item['conflict-norm'] = new_conflict_norm
+            conflict_norm_judgement, conflict_norm_reason= judge_4_conflict_norm(item)
+            if conflict_norm_judgement !=1: # 如果conflict-norm不合格，告知其理由
                 print(f"    conflict-norm不合格")
-                messages_history.append({'role': Role.USER, 'content': instruction_4regen_confnorm})
+                instruction_4regen_confnorm_with_reason = instruction_4regen_confnorm.replace('{Reason}',conflict_norm_reason)
+                messages_history.append({'role': Role.USER, 'content': instruction_4regen_confnorm_with_reason})
                 continue
             else:
                 item['conflict-norm'] = new_conflict_norm
@@ -112,18 +116,16 @@ for index, item in enumerate(data[existing_data_len:]):
                         messages_history.append({'role': Role.ASSISTANT, 'content': Answer})
                         new_situation = extract_situation(Answer)
                         item['new_situation'] = new_situation
-                        new_judge,new_judge_answer = judge_4_situation(item)
-                        judgement_history.append(f"{iter_count}_{i}th iteration, situation_judgement:{new_judge_answer}")
-                        if new_judge == 1:
+                        situation_judgement, situation_reason= judge_4_situation(item)
+                        if situation_judgement== 1:
                             DONE = True
                             print(f"      situation合格，stop")
                             break
                         else:
                             print(f"      situation不合格")
                     else:
-                        instruction = instruction_4regen_situation
-                        prompt = get_prompt(instruction, item)
-                        messages_history.append({'role': Role.USER, 'content': f'{prompt}'})
+                        instruction_4regen_situation_with_reason = instruction_4regen_situation.replace('{Reason}',situation_reason)
+                        messages_history.append({'role': Role.USER, 'content': instruction_4regen_situation_with_reason})
                         completion = client.chat.completions.create(
                             model=model_name,
                             messages=messages_history,
@@ -135,20 +137,21 @@ for index, item in enumerate(data[existing_data_len:]):
                         messages_history.append({'role': Role.ASSISTANT, 'content': Answer})
                         new_situation = extract_situation(Answer)
                         item['new_situation'] = new_situation
-                        new_judge, new_judge_answer = judge_4_situation(item)
-                        judgement_history.append(
-                            f"{iter_count}_{i}th iteration, situation_judgement:{new_judge_answer}")
-                        if new_judge == 1:
+                        situation_judgement, situation_reason= judge_4_situation(item)
+                        if situation_judgement == 1:
                             print(f"      situation合格，stop")
                             DONE = True
                             break
                         else:
                             print(f"      situation不合格")
+
+                        if i == SITUATION_ITER: # 在conflict-norm下的所有situation都不合格，重新生成conflict-norm
+                            instruction = instruction_4gen_another_confnorm
+                            prompt = get_prompt(instruction, item)
+                            messages_history.append({'role': Role.USER, 'content': f'{prompt}'})
+
         else:
             # 换一个conflict-norm继续迭代
-            instruction = instruction_4gen_another_confnorm
-            prompt = get_prompt(instruction, item)
-            messages_history.append({'role': Role.USER, 'content': f'{prompt}'})
             completion = client.chat.completions.create(
                     model=model_name,
                     messages=messages_history,
@@ -159,13 +162,14 @@ for index, item in enumerate(data[existing_data_len:]):
             Answer = completion.choices[0].message.content
             messages_history.append({'role': Role.ASSISTANT, 'content': Answer})
             new_conflict_norm = extract_norm(Answer)
-            conflict_norm_judgement = judge_4_conflict_norm(new_conflict_norm)
+            item['conflict-norm'] = new_conflict_norm
+            conflict_norm_judgement, conflict_norm_reason = judge_4_conflict_norm(item)
             if conflict_norm_judgement !=1: # 如果conflict-norm不合格，重来
                 print(f"    conflict-norm不合格")
-                messages_history.append({'role': Role.USER, 'content': instruction_4regen_confnorm})
+                instruction_4regen_confnorm_with_reason = instruction_4regen_confnorm.replace('{Reason}',conflict_norm_reason)
+                messages_history.append({'role': Role.USER, 'content': instruction_4regen_confnorm_with_reason})
                 continue
             else:
-                item['conflict-norm'] = new_conflict_norm
                 print(f"    conflict-norm合格")
                 qualified_conflict_norm_nums += 1
                 messages_history.append({'role': Role.USER, 'content': instruction_4finish_confnorm})
@@ -174,7 +178,8 @@ for index, item in enumerate(data[existing_data_len:]):
                 messages_history.append({'role': Role.USER, 'content': prompt.replace('{length_limit}', f"{max(100,2*original_length)}")})
                 for i in range(1,SITUATION_ITER+1):
                     if i!=1:
-                        messages_history.append({'role': Role.USER, 'content': instruction_4regen_situation})
+                        instruction_4regen_situation_with_reason = instruction_4regen_situation.replace('{Reason}',situation_reason)
+                        messages_history.append({'role': Role.USER, 'content': instruction_4regen_situation_with_reason})
                     situation_iteration_nums += 1
                     completion = client.chat.completions.create(
                         model=model_name,
@@ -187,21 +192,20 @@ for index, item in enumerate(data[existing_data_len:]):
                     messages_history.append({'role': Role.ASSISTANT, 'content': Answer})
                     new_situation = extract_situation(Answer)
                     item['new_situation'] = new_situation
-                    new_judge, new_judge_answer = judge_4_situation(item)
-                    judgement_history.append(f"{iter_count}_{i}th iteration, situation_judgement:{new_judge_answer}")
-                    if new_judge == 1:
+                    situation_judgement, situation_reason = judge_4_situation(item)
+                    if situation_judgement == 1:
                         print(f"      situation合格，stop")
                         DONE = True
                         break
                     else:
                         print(f"      situation不合格")
+                    if i == SITUATION_ITER:
+                        instruction = instruction_4gen_another_confnorm
+                        prompt = get_prompt(instruction, item)
+                        messages_history.append({'role': Role.USER, 'content': f'{prompt}'})
 
-    # 将judgement_history先变成一个字符串，再加入messages_history
-    print(f"input_token_num:{input_token_num}, output_token_num:{output_token_num}")
-    judgement_history_str = '\n'.join(judgement_history)
-    messages_history.append({'role': 'judge', 'content': judgement_history_str})
 
-    situation_judgement = 1 if new_judge == 1 else 0
+
 
     new_data.append({'ID': item['ID'],'norm': item['norm'], 'conflict-norm': new_conflict_norm,'situation': item['situation'],"new_situation":item['new_situation'],'moral_action': item['moral_action'],'immoral_action': item['immoral_action'],'rot_category':item['rot_category'],'conflict_norm_judgement':conflict_norm_judgement, 'situation_judgement':situation_judgement, 'conflict_norm_iteration_nums': conflict_norm_iteration_nums, 'qualified_conflict_norm_nums': qualified_conflict_norm_nums, 'situation_iteration_nums': situation_iteration_nums})
     messages_history_all.append(messages_history)

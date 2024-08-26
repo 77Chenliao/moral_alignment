@@ -1,8 +1,7 @@
 import dashscope
 from dashscope.api_entities.dashscope_response import Role, Message
 from openai import OpenAI
-from http import HTTPStatus
-from utils import get_prompt, extract_satisfied
+from utils import get_prompt, extract_judgement_reason
 from instructions_all import instruction_4judge_situation
 import  time
 from utils import dash_api_keys, openai_api_key
@@ -38,13 +37,14 @@ def judge_4_situation(data):
             temperature=1e-5
         )
         Answer = completion.output.choices[0]['message']['content']
-    judge = extract_satisfied(Answer)
-    return judge,Answer
+    judgement,reason = extract_judgement_reason(Answer)
+    return judgement,reason
 
 
 if __name__ == '__main__':
     data = {
         "situation": "Lydia is visiting her cousin Melody who just had a baby. Lydia wants to comment about Melody's health.",
+        "new_situation": "Lydia is visiting her cousin Melody who just had a baby. Lydia wants to comment about Melody's health.",
         "norm": "Family shouldn't bully other family members.",
         "conflict-norm": "Family should be honest with each other.",
         "moral_action": "Lydia tells Melody that she and her baby look healthy and happy.",

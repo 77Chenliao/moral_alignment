@@ -57,11 +57,19 @@ def extract_AB(answer):
     else:
         return 'B'
 
-def extract_satisfied(answer):
-    if "Satisfied" in answer and "Unsatisfied" not in answer:
-        return 1
+def extract_judgement_reason(text):
+    if 'Reason:' in text and 'Judgement:' in text:
+        reason_start = text.find("Reason:") + len("Reason:")
+        judgement_start = text.find("Judgement:")
+        # 提取 Reason 和 Judgement 的内容
+        reason_content = text[reason_start:judgement_start].strip().strip('.')
+        judgement_content = text[judgement_start + len("Judgement:"):].strip().strip('.')
+        if 'Satisfied' in judgement_content:
+            return 1, reason_content
+        else:
+            return 0, reason_content
     else:
-        return 0
+        return -1, 'just not qualified enough'
 
 
 def extract_AB_4_evaluation_llm(answer):
