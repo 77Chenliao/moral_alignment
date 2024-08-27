@@ -1,5 +1,6 @@
 from sklearn.metrics import precision_score, recall_score, f1_score
 import  json
+import re
 
 
 def extract_norm(answer):
@@ -14,7 +15,23 @@ def extract_situation(answer):
         result = answer.split('New situation:')[1].strip()
         return result
     return answer
-        
+
+def extract_moral_conflict_details(text):
+    # 找到各个部分的开始位置
+    moral_conflict_start = text.find("Moral conflict:") + len("Moral conflict:")
+    conflict_norm_start = text.find("Conflict-norm:")
+    conflict_action_start = text.find("Conflict-action:")
+
+    # 提取 moral conflict 部分
+    moral_conflict = text[moral_conflict_start:conflict_norm_start].strip()
+
+    # 提取 conflict-norm 部分
+    conflict_norm = text[conflict_norm_start + len("Conflict-norm:"):conflict_action_start].strip()
+
+    # 提取 conflict-action 部分
+    conflict_action = text[conflict_action_start + len("Conflict-action:"):].strip()
+
+    return moral_conflict, conflict_norm, conflict_action
 
 
 
