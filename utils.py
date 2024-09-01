@@ -34,6 +34,17 @@ def extract_moral_conflict_details(text):
     return moral_conflict, conflict_norm, conflict_action
 
 
+def extract_filtering_result(text):
+    # 统计"Condition"出现的次数
+    condition_count = text.count("Condition")
+    # 统计"Yes"出现的次数
+    yes_count = text.count("Yes")
+    if condition_count == yes_count:
+        return 1, text
+    else:
+        return 0, text
+
+
 
 def get_prompt(instruction, item):
     prompt = instruction
@@ -55,6 +66,12 @@ def get_prompt(instruction, item):
         prompt = prompt.replace('{Conflict-norm}', item['conflict-norm'])
     if "{New_situation}" in instruction:
         prompt = prompt.replace('{New_situation}', item['new_situation'])
+    if "{Conflict-action}" in instruction:
+        prompt = prompt.replace('{Conflict-action}', item['conflict-action'])
+    if "{Moral_conflict}" in instruction:
+        prompt = prompt.replace('{Moral_conflict}', item['moral_conflict'])
+    if "{Action}" in instruction:
+        prompt = prompt.replace('{Action}', item['action'])
     return prompt
 
 

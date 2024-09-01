@@ -11,10 +11,11 @@ import random
 random.seed(2024)
 import os
 from utils import get_prompt, ali_api_key, openai_api_key, cal_metrics_4_evaluation
-from instructions_all import instruction_4evaluation_0norm, instruction_4evaluation_norm, instruction_4evaluation_conflict_norm, instruction_4evaluation_2norms
+from code_old.instructions_all import instruction_4evaluation_0norm, instruction_4evaluation_norm, instruction_4evaluation_conflict_norm, instruction_4evaluation_2norms
 
-model_name = 'llama3-70b-instruct' # llama3-70b-instruct, llama3-8b-instruct, gpt-3.5-turbo, gpt-4o
-task_setting = 'conflict-norm' # 0norm, norm, conflict-norm,2norms
+
+model_name = 'gpt-3.5-turbo' # llama3-70b-instruct, llama3-8b-instruct, gpt-3.5-turbo, gpt-4o
+task_setting = '2norms' # 0norm, norm, conflict-norm,2norms
 dataset = 'moral_conflicts' # original_moral_stories, moral_conflicts
 
 if task_setting == '0norm':
