@@ -26,8 +26,8 @@ for item in data[existing_data_len:]:
         print(f"{existing_data_len + 1}/{len(data)}")
         print(f"Moral conflict: {item['moral_conflict']}")
         print(f"Norm_1: {item['norm']}")
-        print(f"Norm_2: {item['conflict-norm']}")
         print(f"Action_1: {item['action']}")
+        print(f"Norm_2: {item['conflict-norm']}")
         print(f"Action_2: {item['conflict-action']}")
         # 即时保存
         result = input("Satisfied?(1/x):  ")
