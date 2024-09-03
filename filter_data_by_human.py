@@ -18,20 +18,25 @@ else:
 
 existing_data_len = len(data_filtered)
 for item in data[existing_data_len:]:
-    print(f"{existing_data_len + 1}/{len(data)}")
-    print(f"Moral conflict: {item['moral_conflict']}")
-    print(f"Norm_1: {item['norm']}")
-    print(f"Norm_2: {item['conflict-norm']}")
-    print(f"Action_1: {item['action']}")
-    print(f"Action_2: {item['conflict-action']}")
-    # 即时保存
-    result = input("Satisfied?(1/x):  ")
-    if result == '1':
-        item['human_evaluation'] = 1
-    else:
+    if item['llm_evaluation'] == 0:
         item['human_evaluation'] = 0
-    data_filtered.append(item)
-    existing_data_len += 1
+        existing_data_len += 1
+        data_filtered.append(item)
+    else:
+        print(f"{existing_data_len + 1}/{len(data)}")
+        print(f"Moral conflict: {item['moral_conflict']}")
+        print(f"Norm_1: {item['norm']}")
+        print(f"Norm_2: {item['conflict-norm']}")
+        print(f"Action_1: {item['action']}")
+        print(f"Action_2: {item['conflict-action']}")
+        # 即时保存
+        result = input("Satisfied?(1/x):  ")
+        if result == '1':
+            item['human_evaluation'] = 1
+        else:
+            item['human_evaluation'] = 0
+        data_filtered.append(item)
+        existing_data_len += 1
     with open(output_path, 'w',encoding='utf-8') as f:
         json.dump(data_filtered, f, indent=4, ensure_ascii=False)
 

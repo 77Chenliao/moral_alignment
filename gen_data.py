@@ -49,11 +49,12 @@ for item in tqdm(data[existing_data_len:]):
         messages=messages_history,
         temperature=Temperature_4_generation,
     )
-    input_token += completion.usage.prompt_tokens
-    output_token += completion.usage.completion_tokens
+    # input_token += completion.usage.prompt_tokens
+    # output_token += completion.usage.completion_tokens
+    # print(f"in:{input_token}, out:{output_token}")
     Answer = completion.choices[0].message.content
     moral_conflict, conflict_norm, conflict_action = extract_moral_conflict_details(Answer)
-    new_data.append({'ID': item['ID'], 'situation': item['situation'], 'moral_conflict': moral_conflict, 'norm': item['norm'],'action': item['moral_action'], 'conflict-norm': conflict_norm, 'conflict-action': conflict_action})
+    new_data.append({'ID': item['ID'], 'situation': item['situation'], 'moral_conflict': moral_conflict, 'norm': item['norm'],'action': item['moral_action'], 'conflict-norm': conflict_norm, 'conflict-action': conflict_action, "rot_category":item["rot_category"]})
     # 即时保存
     with open(output_path, 'w',encoding='utf-8') as f:
         json.dump(new_data, f, indent=4, ensure_ascii=False)

@@ -44,9 +44,12 @@ for item in tqdm(data[existing_data_len:]):
         temperature=Temperature,
     )
     Answer = completion.choices[0].message.content
+    # input_token = completion.usage.prompt_tokens
+    # output_token = completion.usage.completion_tokens
+    # print(f"in:{input_token}, out:{output_token}")
     result, detail = extract_filtering_result(Answer)
-    item['filtering_result'] = result
-    item['filtering_detail'] = detail
+    item['llm_evaluation'] = result
+    item['llm_evaluation_detail'] = detail
     data_filtered.append(item)
     # 即时保存
     with open(output_path, 'w',encoding='utf-8') as f:

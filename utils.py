@@ -2,7 +2,6 @@ from sklearn.metrics import precision_score, recall_score, f1_score
 import  json
 import re
 
-
 def extract_norm(answer):
     if 'conflict-norm is:' in answer:
         result = answer.split('conflict-norm is:')[1].strip()
