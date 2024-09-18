@@ -11,34 +11,36 @@ import random
 random.seed(2024)
 import os
 from utils import get_prompt, ali_api_key, openai_api_key, cal_metrics_4_evaluation
-from code_old.instructions_all import instruction_4evaluation_0norm, instruction_4evaluation_norm, instruction_4evaluation_conflict_norm, instruction_4evaluation_2norms
+from instructions import instruction_4_moral_action_choice_basic, instruction_4_moral_action_choice_conflict_norm, instruction_4_moral_action_choice_norm, instruction_4_moral_action_choice_2norms
 
 
-model_name = 'gpt-3.5-turbo' # llama3-70b-instruct, llama3-8b-instruct, gpt-3.5-turbo, gpt-4o
-task_setting = '2norms' # 0norm, norm, conflict-norm,2norms
-dataset = 'moral_conflicts' # original_moral_stories, moral_conflicts
 
-if task_setting == '0norm':
-    instruction = instruction_4evaluation_0norm
-elif task_setting == 'norm':
-    instruction = instruction_4evaluation_norm
-elif task_setting == 'conflict-norm':
-    instruction = instruction_4evaluation_conflict_norm
-else:
-    instruction = instruction_4evaluation_2norms
-
-
-testing_data_path = f'../datasets/new_datasets/final_datasets/{dataset}.json' # final data
-with open(testing_data_path, 'r') as f:
+data_path = f'./moral_conflicts.json' # final data
+with open(data_path, 'r',encoding='utf-8') as f:
     testing_data = json.load(f)
+
+model_name = 'gpt-3.5-turbo' # llama3-8b-instruct, gpt-3.5-turbo, gpt-4o
+task_setting = '2norms' # basic, conflict-norm, norm, 2norms
+
+if task_setting == 'basic':
+    instruction = instruction_4_moral_action_choice_basic
+elif task_setting == 'norm':
+    instruction = instruction_4_moral_action_choice_norm
+elif task_setting == 'conflict-norm':
+    instruction = instruction_4_moral_action_choice_conflict_norm
+elif task_setting == '2norms':
+    instruction = instruction_4_moral_action_choice_2norms
+else:
+    instruction = instruction_4_moral_action_choice_basic
+
 
 output_dir = f'../exps/{model_name}/'
 os.makedirs(output_dir, exist_ok=True)
-output_path = f"{output_dir}/{dataset}_{task_setting}.json"
+output_path = f"{output_dir}/moral_action_choice_{task_setting}.json"
 
 
 if os.path.exists(output_path):
-    with open(output_path, 'r') as f:
+    with open(output_path, 'r',encoding='utf-8') as f:
         results = json.load(f)
     print(f"已经存在{len(results)}条数据,从上次断点继续")
 else:
@@ -47,20 +49,13 @@ else:
 exist_num = len(results)
 for item in tqdm(testing_data[exist_num:]):
     choice = random.choice([0,1])
-
     if choice == 0: # A为正确选项
+        item['truth'] = 'A'
         instruction_ = instruction
-        item['Truth'] = 'A'
-    elif choice == 1 and task_setting!='2norms': # B为正确选项
-        item['Truth'] = 'B'
-        instruction_ = instruction.replace("A.{Moral_action}\nB.{Immoral_action}","A.{Immoral_action}\nB.{Moral_action}")
-    else: # 2norms实验，既交换选项A和B，又交换norm与conflict-norm的位置
-        item['Truth'] = 'B'
-        instruction_ = instruction.replace("Moral Norm 1:{Norm}\nMoral Norm 2:{Conflict-norm}", "Moral Norm 1:{Conflict-norm}\nMoral Norm 2:{Norm}")
-        instruction_ = instruction.replace("A.{Moral_action}\nB.{Immoral_action}","A.{Immoral_action}\nB.{Moral_action}")
-
+    elif choice == 1: # B为正确选项
+        item['truth'] = 'B'
+        instruction_ = instruction.replace("A.{Action}\nB.{Conflict_action}","A.{Conflict_action}\nB.{Action}")
     prompt = get_prompt(instruction_, item)
-    item['evaluation_prompt'] = prompt
     if 'gpt' in model_name:
         messages = [{'role': Role.SYSTEM, 'content': "You're a moral AI assistant."},
                     {'role': Role.USER, 'content': f'{prompt}'}]
@@ -71,7 +66,7 @@ for item in tqdm(testing_data[exist_num:]):
             temperature=1e-5
         )
         Answer = completion.choices[0].message.content
-        item['model_answer'] = Answer
+        item['result'] = Answer
     else:
         messages = [Message(role=Role.SYSTEM, content="You are a moral AI assistant."),
                     Message(role=Role.USER, content=prompt)]
@@ -83,11 +78,11 @@ for item in tqdm(testing_data[exist_num:]):
         temperature=1e-5
         )
         Answer = completion.output.choices[0]['message']['content']
-        time.sleep(5)
-        item['model_answer'] = Answer
+        time.sleep(7)
+        item['result'] = Answer
     results.append(item)
-    with open(output_path, 'w') as f:
-        json.dump(results, f, indent=4)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(results, f, indent=4, ensure_ascii=False)
 
 precision, recall, f1 = cal_metrics_4_evaluation(results)
 print(f"Precision: {precision}, Recall: {recall}, F1: {f1}")

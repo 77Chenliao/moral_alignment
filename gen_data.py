@@ -28,7 +28,7 @@ if os.path.exists(output_path):
 else:
     new_data = []
 
-TARGET_NUM = 20
+TARGET_NUM = 300
 Temperature_4_generation = 1.2
 
 system_description = "You are a professional data generation model that generates high quality datasets"
@@ -54,7 +54,7 @@ for item in tqdm(data[existing_data_len:]):
     # print(f"in:{input_token}, out:{output_token}")
     Answer = completion.choices[0].message.content
     moral_conflict, conflict_norm, conflict_action = extract_moral_conflict_details(Answer)
-    new_data.append({'ID': item['ID'], 'situation': item['situation'], 'moral_conflict': moral_conflict, 'norm': item['norm'],'action': item['moral_action'], 'conflict-norm': conflict_norm, 'conflict-action': conflict_action, "rot_category":item["rot_category"]})
+    new_data.append({'ID': item['ID'], 'situation': item['situation'], 'moral_conflict': moral_conflict, 'norm': item['norm'],'action': item['moral_action'], 'conflict_norm': conflict_norm, 'conflict_action': conflict_action, "rot_category":item["rot_category"]})
     # 即时保存
     with open(output_path, 'w',encoding='utf-8') as f:
         json.dump(new_data, f, indent=4, ensure_ascii=False)
